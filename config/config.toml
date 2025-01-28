@@ -1,0 +1,27 @@
+[search]
+category = "mietwohnungen"
+states = ["vienna"]
+
+[search.filters]
+min_price = 500
+max_price = 1200
+min_rooms = 2
+max_rooms = 5
+
+locations = [
+    "Wien, 02. Bezirk, Leopoldstadt",
+    "Wien, 03. Bezirk, Landstraße",
+    "Wien, 04. Bezirk, Wieden",
+    "Wien, 05. Bezirk, Margareten",
+    "Wien, 06. Bezirk, Mariahilf",
+    "Wien, 07. Bezirk, Neubau",
+    "Wien, 08. Bezirk, Josefstadt",
+    "Wien, 09. Bezirk, Alsergrund",
+    "Wien, 20. Bezirk, Brigittenau"
+]
+
+[scraper]
+interval = 180000
+max_retries = 3
+retry_delay = 30000
+user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
