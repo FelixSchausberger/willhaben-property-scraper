@@ -264,7 +264,7 @@ function isNewerListing(currentListing, lastSeenListing) {
 }
 
 class WillhabenPropertySearch {
-  constructor(telegramNotifier = null, isDebug = false) {
+  constructor(telegramNotifier = null) {
     this.telegramNotifier = telegramNotifier;
     this.searchCount = 1000;
     this.searchCategory = '';
@@ -523,7 +523,7 @@ class WillhabenPropertySearch {
     return url;
   }
   
-  applyFilters(listings, storage) {
+  applyFilters(listings) {
     logger.debug('=== First Stage Filtering ===');
     logger.debug('Applied filters:', JSON.stringify(this.filters, null, 2));
     logger.debug('Total listings before filtering:', listings.length);
@@ -582,6 +582,11 @@ class WillhabenPropertySearch {
           name: districtMatch[3].toLowerCase()
         };
 
+        // Add detailed logging
+        logger.debug('Listing location parsed:', JSON.stringify(listingLocation));
+        logger.debug('Active states:', JSON.stringify(activeStates));
+        logger.debug('Allowed districts:', JSON.stringify(allowedDistricts));
+
         // Check if the state is active and district is allowed
         const isAllowedState = activeStates.includes(listingLocation.state);
         const isAllowedDistrict = allowedDistricts.some(
@@ -589,6 +594,11 @@ class WillhabenPropertySearch {
                       district.number === listingLocation.number && 
                       district.name === listingLocation.name
         );
+
+        logger.debug(`Listing ${listing.id}:`, {
+          isAllowedState,
+          isAllowedDistrict
+        });
 
         if (!isAllowedState || !isAllowedDistrict) {
           logger.debug(`Filtered out listing ${listing.id}: state ${listingLocation.state}, district ${listingLocation.number} ${listingLocation.name} not allowed`);

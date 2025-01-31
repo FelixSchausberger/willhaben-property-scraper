@@ -125,8 +125,14 @@ export default class PropertyScraper {
           }))
         });
   
-        const filteredListings = listings.filter(listing => 
+        /*const filteredListings = listings.filter(listing => 
           config.search.locations.includes(listing.location)
+        );*/
+
+        const filteredListings = listings.filter(listing => 
+          config.search.locations.some(location => 
+            listing.location.toLowerCase().includes(location.toLowerCase())
+          )
         );
   
         logger.debug('Filtered listings:', {

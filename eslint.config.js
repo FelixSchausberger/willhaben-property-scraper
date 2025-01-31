@@ -1,28 +1,41 @@
+import js from '@eslint/js';
+
 export default [
+  js.configs.recommended,
   {
     files: ["**/*.js"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
-        // Equivalent of "env: node" (Node.js globals)
-        global: "readonly",
+        console: "readonly",
+        
+        // Node.js globals
         process: "readonly",
-        __dirname: "readonly",
-        // Equivalent of "env: es2021" (ES2021 globals)
-        Atomics: "readonly",
-        SharedArrayBuffer: "readonly",
-        // Jest-specific globals
+        global: "readonly",
+        setTimeout: "readonly",
+        setInterval: "readonly",
+        
+        // Web globals
+        fetch: "readonly",
+        AbortSignal: "readonly",
+        URLSearchParams: "readonly",
+        
+        // Jest globals
+        jest: "readonly",
         describe: "readonly",
         test: "readonly",
         expect: "readonly",
         beforeEach: "readonly",
         afterEach: "readonly",
+        
+        // Project-specific globals
+        isDebug: "readonly",
+        storage: "readonly",
       },
     },
     rules: {
-      // Add specific ESLint rules here if needed
-      // "no-unused-vars": "warn",
+      "no-unused-vars": "warn",
     },
   },
 ];

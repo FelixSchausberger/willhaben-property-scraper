@@ -1,38 +1,17 @@
 import WillhabenPropertySearch from '../willhaben-property-search.js';
-import Storage from '../storage.js';
+// import Storage from '../storage.js';
 
 global.logger = {
   debug: jest.fn(),
   error: jest.fn()
 };
 
-const mockListings = [
-  {
-    id: "1",
-    location: "Wien, 02. Bezirk, Leopoldstadt",
-    number_of_rooms: 3,
-    price: 800
-  },
-  {
-    id: "2",
-    location: "Wien, 03. Bezirk, Landstraße",
-    number_of_rooms: 2,
-    price: 1200
-  },
-  {
-    id: "3",
-    location: "Wien, 04. Bezirk, Wieden",
-    number_of_rooms: 1,
-    price: 600
-  }
-];
-
 describe('WillhabenPropertySearch', () => {
   let search;
-  let mockStorage;
+  // let mockStorage;
 
   beforeEach(() => {
-    mockStorage = new Storage();
+    // mockStorage = new Storage();
     search = new WillhabenPropertySearch();
     // Set up global config with exact district names that match the lowercase comparison
     global.config = {
@@ -133,8 +112,8 @@ describe('WillhabenPropertySearch', () => {
     });
   });
 
-  /*describe('applyFilters', () => {
-    test('should filter listings by district with exact name matching', () => {
+  describe('applyFilters', () => {
+    test('should filter listings by district with flexible matching', () => {
       const mockListings = [
         {
           id: "1",
@@ -156,66 +135,100 @@ describe('WillhabenPropertySearch', () => {
         }
       ];
 
+      // Ensure config matches exact parsing logic in the method
+      global.config = {
+        search: {
+          states: ['vienna'],
+          locations: [
+            'wien, 02. Bezirk, Leopoldstadt',
+            'wien, 03. Bezirk, Landstraße'
+          ]
+        }
+      };
+
+      // Reset any existing filters
+      search.filters = {
+        minPrice: 500,
+        maxPrice: 1200,
+        minRooms: 2,
+        maxRooms: 5
+      };
+
       const filtered = search.applyFilters(mockListings);
-      
-      // Debug output
-      console.log('Filtered listings:', filtered);
-      console.log('Config locations:', global.config.search.locations);
-      
-      // Check that only listings from districts 02 and 03 are included
+
       expect(filtered).toHaveLength(2);
       const filteredIds = filtered.map(l => l.id).sort();
       expect(filteredIds).toEqual(['1', '2']);
     });
-  });*/
+  });
 
   /*describe('getListings integration', () => {
     test('should filter out previously seen listings with storage', async () => {
-      // Set up config mock first
-      global.config = {
-        search: {
-          locations: [
-            'Wien, 02. Bezirk, Leopoldstadt',
-            'Wien, 03. Bezirk, Landstraße',
-            'Wien, 04. Bezirk, Wieden'
-          ],
-          states: ['vienna']
+      // Create search instance first
+      const search = new WillhabenPropertySearch({
+        minPrice: 500,
+        maxPrice: 1500
+      });
+ 
+      // Patch problematic async methods after instance creation
+      search.sleep = jest.fn().mockResolvedValue(null);
+      search.retry = jest.fn(async (fn) => await fn());
+ 
+      // Mock storage and global functions
+      global.extractListingAttributes = jest.fn(listing => ({
+        id: listing.id,
+        price: listing.price,
+        location: listing.location,
+        heading: listing.heading
+      }));
+      global.isNewerListing = jest.fn((a, b) => parseInt(a.id) > parseInt(b.id));
+      global.sanitizeForUrl = jest.fn(str => str.toLowerCase().replace(/\s+/g, '-'));
+ 
+      // Mock storage
+      const mockStorage = {
+        getLastSeenListing: jest.fn().mockResolvedValue({ 
+          id: '2', 
+          price: 1200 
+        }),
+        updateLastSeenListing: jest.fn()
+      };
+ 
+      // Mock fetch response
+      const mockResponse = {
+        props: {
+          pageProps: {
+            searchResult: {
+              advertSummaryList: {
+                advertSummary: [
+                  { id: '1', price: 800, location: 'Wien, 02. Bezirk, Leopoldstadt', heading: 'Nice Apartment' },
+                  { id: '2', price: 1200, location: 'Wien, 03. Bezirk, Landstraße', heading: 'Existing Listing' },
+                  { id: '3', price: 1100, location: 'Wien, 04. Bezirk, Wieden', heading: 'New Apartment' }
+                ]
+              }
+            }
+          }
         }
       };
-
-      // Create new instances after setting config
-      search = new WillhabenPropertySearch();
-      mockStorage = new Storage();
-
-      // Store listing 2 as previously seen
-      const seenListing = { 
-        id: '2', 
-        price: 1200, 
-        number_of_rooms: 2, 
-        location: 'Wien, 03. Bezirk, Landstraße'
-      };
-      await mockStorage.updateLastSeenListing(seenListing);
-
-      const mockListings = [
-        { id: '1', price: 800, number_of_rooms: 3, location: 'Wien, 02. Bezirk, Leopoldstadt' },
-        { id: '2', price: 1200, number_of_rooms: 2, location: 'Wien, 03. Bezirk, Landstraße' },
-        { id: '3', price: 600, number_of_rooms: 1, location: 'Wien, 04. Bezirk, Wieden' }
-      ];
-
-      // Mock the getListings method to return our test data
-      const originalGetListings = search.getListings;
-      search._fetchListings = jest.fn().mockResolvedValue(mockListings);
-
-      // Call getListings with storage
+ 
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: jest.fn().mockResolvedValue(
+          `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(mockResponse)}</script>`
+        )
+      });
+ 
+      // Call getListings
       const listings = await search.getListings(mockStorage);
       
-      // Verify that listing 2 is filtered out
+      // Verify filtered listings
       const resultIds = listings.map(l => l.id).sort();
       expect(resultIds).toEqual(['1', '3']);
       expect(listings).toHaveLength(2);
-
-      // Restore original methods
-      search.getListings = originalGetListings;
-    });
+      
+      // Verify storage update
+      expect(mockStorage.updateLastSeenListing).toHaveBeenCalledWith(
+        expect.objectContaining({ id: '3' })
+      );
+    }, 30000);
   });*/
 });
