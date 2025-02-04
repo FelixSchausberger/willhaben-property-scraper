@@ -101,24 +101,21 @@ To receive notifications, you'll need to set up a Telegram bot:
    - Visit: `https://api.telegram.org/bot<YourBOTToken>/getUpdates`
    - Look for the "chat" object and copy the "id" value - this is your `chatId`
 
-3. Install (git-crypt)[https://github.com/AGWA/git-crypt]
-4. Initialize the repo with `git-crypt init`
-5. Add the `apiToken` and `chatId` values to `./secrets/secrets.yaml`:
+6. Set up secret management with [sops-nix](https://github.com/Mic92/sops-nix):
 
-```javascript
-telegram: {
-  apiToken: 'your_bot_token_here',
-  chatId: 'your_chat_id_here'
-}
-```
+  - Generate an SSH key pair if you don't have one: `ssh-keygen -t ed25519 -C "your_email@example.com"`
+  - Convert your SSH public key to age format: `ssh-to-age -i ~/.ssh/id_ed25519.pub >> .sops.yaml`
+  - Create an initial secrets file: `sops edit secrets/secrets.yaml`
+  - Update the secrets file with your configuration:
 
-6. Since the only user of this repository with access to decrypt secrets will be you, it’s more convenient to export a symmetric secret key and base64 encode it so that you can throw it in 1Password or something similar.
+  ```yaml
+  telegram:
+    apiToken: 'your_bot_token_here',
+    chatId: 'your_chat_id_here'
+  github_token: 'your_github_token_here'
+  ```
 
-```shell
-git-crypt export-key ./secret-key
-cat ./secret-key | base64 > ./secret-key-base64
-cat ./secret-key-base64
-```
+  - Make sure your age private key is available in the environment: `export SOPS_AGE_KEY=$(cat ~/.ssh/id_ed25519 | ssh-to-age)`
 
 ### Scraper Configuration
 
