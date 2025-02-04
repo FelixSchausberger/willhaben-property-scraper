@@ -170,10 +170,3 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ## Disclaimer
 
 This tool is for educational purposes only. Make sure to check Willhaben's terms of service and adjust your scraping frequency accordingly to avoid overwhelming their servers.
-
-## TODO
-
-- Fix the `applyFilters` test
-- Fix the `getListings integration` test
-- Resolve `X25519 Web Crypto API` warning: Address the warning `(node:24374) ExperimentalWarning: The X25519 Web Crypto API algorithm is an experimental feature and might change at any time`
-. Include act secrets in the workflow files

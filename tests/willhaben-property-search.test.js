@@ -162,73 +162,89 @@ describe('WillhabenPropertySearch', () => {
     });
   });
 
-  /*describe('getListings integration', () => {
+  describe('getListings integration', () => {
     test('should filter out previously seen listings with storage', async () => {
-      // Create search instance first
-      const search = new WillhabenPropertySearch({
+      const search = new WillhabenPropertySearch();
+      search.filter({
         minPrice: 500,
         maxPrice: 1500
       });
- 
-      // Patch problematic async methods after instance creation
+   
       search.sleep = jest.fn().mockResolvedValue(null);
       search.retry = jest.fn(async (fn) => await fn());
- 
-      // Mock storage and global functions
-      global.extractListingAttributes = jest.fn(listing => ({
-        id: listing.id,
-        price: listing.price,
-        location: listing.location,
-        heading: listing.heading
-      }));
-      global.isNewerListing = jest.fn((a, b) => parseInt(a.id) > parseInt(b.id));
-      global.sanitizeForUrl = jest.fn(str => str.toLowerCase().replace(/\s+/g, '-'));
- 
-      // Mock storage
-      const mockStorage = {
-        getLastSeenListing: jest.fn().mockResolvedValue({ 
-          id: '2', 
-          price: 1200 
-        }),
-        updateLastSeenListing: jest.fn()
-      };
- 
-      // Mock fetch response
+   
       const mockResponse = {
         props: {
           pageProps: {
             searchResult: {
               advertSummaryList: {
                 advertSummary: [
-                  { id: '1', price: 800, location: 'Wien, 02. Bezirk, Leopoldstadt', heading: 'Nice Apartment' },
-                  { id: '2', price: 1200, location: 'Wien, 03. Bezirk, Landstraße', heading: 'Existing Listing' },
-                  { id: '3', price: 1100, location: 'Wien, 04. Bezirk, Wieden', heading: 'New Apartment' }
+                  { 
+                    id: '1', 
+                    attributes: { 
+                      attribute: [
+                        { name: 'PRICE', values: ['800'] },
+                        { name: 'LOCATION', values: ['Wien, 02. Bezirk, Leopoldstadt'] },
+                        { name: 'HEADING', values: ['Nice Apartment'] }
+                      ] 
+                    }
+                  },
+                  { 
+                    id: '2', 
+                    attributes: { 
+                      attribute: [
+                        { name: 'PRICE', values: ['1200'] },
+                        { name: 'LOCATION', values: ['Wien, 03. Bezirk, Landstraße'] },
+                        { name: 'HEADING', values: ['Existing Listing'] }
+                      ] 
+                    }
+                  },
+                  { 
+                    id: '3', 
+                    attributes: { 
+                      attribute: [
+                        { name: 'PRICE', values: ['1100'] },
+                        { name: 'LOCATION', values: ['Wien, 04. Bezirk, Wieden'] },
+                        { name: 'HEADING', values: ['New Apartment'] }
+                      ] 
+                    }
+                  }
                 ]
               }
             }
           }
         }
       };
- 
+   
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         text: jest.fn().mockResolvedValue(
           `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(mockResponse)}</script>`
         )
       });
- 
-      // Call getListings
+   
+      const mockStorage = {
+        getLastSeenListing: jest.fn().mockResolvedValue({ 
+          id: '2',
+          price: 1200,
+          _lastUpdated: new Date(Date.now() - 1000).toISOString()  // Set a timestamp
+        }),
+        updateLastSeenListing: jest.fn()
+      };
+   
       const listings = await search.getListings(mockStorage);
       
-      // Verify filtered listings
-      const resultIds = listings.map(l => l.id).sort();
-      expect(resultIds).toEqual(['1', '3']);
-      expect(listings).toHaveLength(2);
+      // Debug logging
+      // console.log('Filters:', search.filters);
+      // console.log('Processed listings:', listings);
       
-      // Verify storage update
+      const resultIds = listings.map(l => l.id).sort();
+      expect(resultIds).toEqual(['3']);
+      expect(listings).toHaveLength(1);
+      
       expect(mockStorage.updateLastSeenListing).toHaveBeenCalledWith(
         expect.objectContaining({ id: '3' })
       );
     }, 30000);
-  });*/
+  });
 });

@@ -236,7 +236,7 @@ function extractListingAttributes(listing) {
 
   return {
     id: listing.id,
-    price: findAttributeValue('PRICE'),
+    price: findAttributeValue('PRICE') ? parseFloat(findAttributeValue('PRICE')) : null,
     number_of_rooms: findAttributeValue('ROOMS_TOTAL'),
     estate_size: findAttributeValue('ESTATE_SIZE'),
     location: findAttributeValue('LOCATION'),
